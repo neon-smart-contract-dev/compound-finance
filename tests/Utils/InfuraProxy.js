@@ -37,9 +37,9 @@ async function handle(req, res) {
       try {
         console.log('Requesting...', network, req.method, project, data);
         const result = await fetch({
-          host: `${network}.infura.io`,
+          host: `https://proxy.devnet.neonlabs.org/solana`,
           method: req.method,
-          path: `/v3/${project}`,
+          path: `/`,
           data: data
         });
         res.writeHead(200, {'Content-Type': 'application/javascript'});

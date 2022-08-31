@@ -191,6 +191,8 @@ export async function initWorld(
   basePath: string | null,
   totalGas: number | null
 ): Promise<World> {
+  network = "neon";
+  console.log("NETTTWORK = ", network)
   return new World({
     actions: [],
     event: null,

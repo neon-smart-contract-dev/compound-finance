@@ -93,7 +93,7 @@ module.exports = {
         ],
         gas_price: [
           {env: "GAS_PRICE"},
-          {default: "12000000000"}
+          {default: "139159812000"}
         ],
         options: {
           transactionConfirmationBlocks: 1,
@@ -207,6 +207,34 @@ module.exports = {
         {env: "ACCOUNT"},
         {file: `~/.ethereum/mainnet-${process.env['KEY']}`},
         {file: "~/.ethereum/mainnet"}                        // Load from given file with contents as the private key (e.g. 0x...)
+      ]
+    },
+    neon: {
+      providers: [
+        {env: "PROVIDER"},
+        {http: "https://proxy.devnet.neonlabs.org/solana"}
+      ],
+      // 66f4c78fc576855313d105b987f399bb7f1f329aaa73db0b2cd0f41271df95f5
+      // from: "0xEc32c2Ca328E6611AF73A316Ee96c309f9A757BF", // Specify public key corresponding to private key defined above
+      web3: {
+        gas: [
+          {env: "GAS"},
+          {default: "2000000000"}
+        ],
+        gas_price: [
+          {env: "GAS_PRICE"},
+          {default: "150159812000"}
+        ],
+        options: {
+          transactionConfirmationBlocks: 1,
+          transactionBlockTimeout: 5
+        }
+      },
+      accounts: [
+        {env: "ACCOUNT"},
+        {file: "~/.neon/neon"}, // Load from given file with contents as the private key (e.g. 0x...)
+        // {default: "66f4c78fc576855313d105b987f399bb7f1f329aaa73db0b2cd0f41271df95f5"},                         // Load from given file with contents as the private key (e.g. 0x...)
+        {unlocked: 0}
       ]
     },
   },

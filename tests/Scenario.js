@@ -59,7 +59,7 @@ function run(file) {
 
   const scenarioEnv = process.env['scenarios'] || process.env['SCENARIOS'];
   const verbose = !!process.env['verbose'];
-  const network = process.env['NETWORK'] || process.env['network'] || 'test';
+  const network = 'neon';
 
   if (scenarioEnv) {
     console.log(`running scenarios matching: /${scenarioEnv}/i`);

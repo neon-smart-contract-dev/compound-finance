@@ -20,15 +20,15 @@
   "author": "Compound Finance",
   "license": "UNLICENSED",
   "devDependencies": {
-    "bignumber.js": "9.0.0",
-    "jest-diff": "^26.4.2",
-    "jest-junit": "^11.1.0",
-    "prettier": "^1.19.0",
+    "bignumber.js": "9.1.0",
+    "jest-diff": "^29.0.1",
+    "jest-junit": "^14.0.1",
+    "prettier": "^2.7.1",
     "solhint": "^3.3.7",
     "solparse": "^2.2.8"
   },
   "dependencies": {
-    "@solidity-parser/parser": "^0.13.2",
+    "@solidity-parser/parser": "^0.14.3",
     "eth-saddle": "^0.1.25"
   },
   "resolutions": {
