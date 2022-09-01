@@ -237,6 +237,34 @@ module.exports = {
         {unlocked: 0}
       ]
     },
+    neon_local: {
+      providers: [
+        {env: "PROVIDER"},
+        {http: "http://localhost:9090/solana"}
+      ],
+      // 66f4c78fc576855313d105b987f399bb7f1f329aaa73db0b2cd0f41271df95f5
+      // from: "0xEc32c2Ca328E6611AF73A316Ee96c309f9A757BF", // Specify public key corresponding to private key defined above
+      web3: {
+        gas: [
+          {env: "GAS"},
+          {default: "300904320"}
+        ],
+        gas_price: [
+          {env: "GAS_PRICE"},
+          {default: "443065000000"}
+        ],
+        options: {
+          transactionConfirmationBlocks: 1,
+          transactionBlockTimeout: 5
+        }
+      },
+      accounts: [
+        {env: "ACCOUNT"},
+        {file: "~/.neon/neon"}, // Load from given file with contents as the private key (e.g. 0x...)
+        // {default: "66f4c78fc576855313d105b987f399bb7f1f329aaa73db0b2cd0f41271df95f5"},                         // Load from given file with contents as the private key (e.g. 0x...)
+        {unlocked: 0}
+      ]
+    },
   },
   get_network_file: (network) => {
     return null;

@@ -283,7 +283,7 @@ describe('CompoundLens', () => {
       });
     });
   });
-
+/*
   describe('governance', () => {
     let comp, gov;
     let targets, values, signatures, callDatas;
@@ -340,13 +340,15 @@ describe('CompoundLens', () => {
       })
     });
   });
+  */
+
 
   describe('comp', () => {
     let comp, currentBlock;
 
     beforeEach(async () => {
-      currentBlock = +(await web3.eth.getBlockNumber());
       comp = await deploy('Comp', [acct]);
+      currentBlock = +(await web3.eth.getBlockNumber());
     });
 
     describe('getCompBalanceMetadata', () => {
@@ -380,14 +382,14 @@ describe('CompoundLens', () => {
     describe('getCompVotes', () => {
       it('gets correct values', async () => {
         expect(
-          (await call(compoundLens, 'getCompVotes', [comp._address, acct, [currentBlock, currentBlock - 1]])).map(cullTuple)
+          (await call(compoundLens, 'getCompVotes', [comp._address, acct, [currentBlock - 1, currentBlock - 2]])).map(cullTuple)
         ).toEqual([
           {
-            blockNumber: currentBlock.toString(),
+            blockNumber: (Number(currentBlock) - 1).toString(),
             votes: "0",
           },
           {
-            blockNumber: (Number(currentBlock) - 1).toString(),
+            blockNumber: (Number(currentBlock) - 2).toString(),
             votes: "0",
           }
         ]);
@@ -395,8 +397,8 @@ describe('CompoundLens', () => {
 
       it('reverts on future value', async () => {
         await expect(
-          call(compoundLens, 'getCompVotes', [comp._address, acct, [currentBlock + 1]])
-        ).rejects.toRevert('revert Comp::getPriorVotes: not yet determined')
+          call(compoundLens, 'getCompVotes', [comp._address, acct, [currentBlock]])
+        ).rejects.toRevertLive('Returned error: execution reverted: Comp::getPriorVotes: not yet determined')
       });
     });
   });

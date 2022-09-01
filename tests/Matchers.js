@@ -270,6 +270,21 @@ function revert(actual, msg) {
   }
 }
 
+// for live networks
+function revertLive(actual, msg) {
+  return {
+    pass: !!actual['message'] && actual.message === msg,
+    message: () => {
+      if (actual["message"]) {
+        return `expected ${msg}, got ${actual["message"]}`
+      } else {
+        return `expected revert, but transaction succeeded: ${JSON.stringify(actual)}`
+      }
+    }
+  }
+}
+
+
 function revertWithCustomError(actual, errorName, errorArgs, reporter) {
   const correctMessage = !!actual['message'] && actual.message === `VM Exception while processing transaction: revert`
   const err = reporter.CustomErrors[errorName]
@@ -376,6 +391,11 @@ expect.extend({
 
   toRevert(actual, msg='revert') {
     return revert.call(this, actual, msg);
+  },
+
+  // for live networks
+  toRevertLive(actual, msg='revert') {
+    return revertLive.call(this, actual, msg);
   },
 
   toRevertWithCustomError(actual, errorName, errorArgs=[], reporter=TokenErr) {
