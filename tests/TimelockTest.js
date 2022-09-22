@@ -9,6 +9,12 @@ const oneWeekInSeconds = etherUnsigned(7 * 24 * 60 * 60);
 const zero = etherUnsigned(0);
 const gracePeriod = oneWeekInSeconds.multipliedBy(2);
 
+const BigNumber = require('bignumber.js');
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 describe('Timelock', () => {
   let root, notAdmin, newAdmin;
   let blockTimestamp;
@@ -19,7 +25,7 @@ describe('Timelock', () => {
   let value = zero;
   let signature = 'setDelay(uint256)';
   let data = encodeParameters(['uint256'], [newDelay.toFixed()]);
-  let revertData = encodeParameters(['uint256'], [etherUnsigned(60 * 60).toFixed()]);
+  let revertData = encodeParameters(['uint256'], [etherUnsigned(1).toFixed()]);
   let eta;
   let queuedTxHash;
 
@@ -27,10 +33,12 @@ describe('Timelock', () => {
     [root, notAdmin, newAdmin] = accounts;
     timelock = await deploy('TimelockHarness', [root, delay]);
 
-    blockTimestamp = etherUnsigned(100);
-    await freezeTime(blockTimestamp.toNumber())
+//     blockTimestamp = etherUnsigned(100);
+//     await freezeTime(blockTimestamp.toNumber())
+    blockTimestamp = new BigNumber((await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp);
+
     target = timelock.options.address;
-    eta = blockTimestamp.plus(delay);
+    eta = blockTimestamp.plus(delay).plus(5);
 
     queuedTxHash = keccak256(
       encodeParameters(
@@ -54,7 +62,7 @@ describe('Timelock', () => {
 
   describe('setDelay', () => {
     it('requires msg.sender to be Timelock', async () => {
-      await expect(send(timelock, 'setDelay', [delay], { from: root })).rejects.toRevert('revert Timelock::setDelay: Call must come from Timelock.');
+      await expect(send(timelock, 'setDelay', [delay], { from: root })).rejects.toRevertLive('Returned error: execution reverted: Timelock::setDelay: Call must come from Timelock.');
     });
   });
 
@@ -62,7 +70,7 @@ describe('Timelock', () => {
     it('requires msg.sender to be Timelock', async () => {
       await expect(
         send(timelock, 'setPendingAdmin', [newAdmin], { from: root })
-      ).rejects.toRevert('revert Timelock::setPendingAdmin: Call must come from Timelock.');
+      ).rejects.toRevertLive('Returned error: execution reverted: Timelock::setPendingAdmin: Call must come from Timelock.');
     });
   });
 
@@ -74,7 +82,7 @@ describe('Timelock', () => {
     it('requires msg.sender to be pendingAdmin', async () => {
       await expect(
         send(timelock, 'acceptAdmin', { from: notAdmin })
-      ).rejects.toRevert('revert Timelock::acceptAdmin: Call must come from pendingAdmin.');
+      ).rejects.toRevertLive('Returned error: execution reverted: Timelock::acceptAdmin: Call must come from pendingAdmin.');
     });
 
     it('sets pendingAdmin to address 0 and changes admin', async () => {
@@ -99,7 +107,7 @@ describe('Timelock', () => {
     it('requires admin to be msg.sender', async () => {
       await expect(
         send(timelock, 'queueTransaction', [target, value, signature, data, eta], { from: notAdmin })
-      ).rejects.toRevert('revert Timelock::queueTransaction: Call must come from admin.');
+      ).rejects.toRevertLive('Returned error: execution reverted: Timelock::queueTransaction: Call must come from admin.');
     });
 
     it('requires eta to exceed delay', async () => {
@@ -109,7 +117,7 @@ describe('Timelock', () => {
         send(timelock, 'queueTransaction', [target, value, signature, data, etaLessThanDelay], {
           from: root
         })
-      ).rejects.toRevert('revert Timelock::queueTransaction: Estimated execution block must satisfy delay.');
+      ).rejects.toRevertLive('Returned error: execution reverted: Timelock::queueTransaction: Estimated execution block must satisfy delay.');
     });
 
     it('sets hash as true in queuedTransactions mapping', async () => {
@@ -146,7 +154,7 @@ describe('Timelock', () => {
     it('requires admin to be msg.sender', async () => {
       await expect(
         send(timelock, 'cancelTransaction', [target, value, signature, data, eta], { from: notAdmin })
-      ).rejects.toRevert('revert Timelock::cancelTransaction: Call must come from admin.');
+      ).rejects.toRevertLive('Returned error: execution reverted: Timelock::cancelTransaction: Call must come from admin.');
     });
 
     it('sets hash from true to false in queuedTransactions mapping', async () => {
@@ -197,24 +205,19 @@ describe('Timelock', () => {
       await send(timelock, 'queueTransaction', [target, value, signature, data, eta], {
         from: root
       });
-
-      // Queue transaction that will revert when executed
-      await send(timelock, 'queueTransaction', [target, value, signature, revertData, eta], {
-        from: root
-      });
     });
 
     it('requires admin to be msg.sender', async () => {
       await expect(
         send(timelock, 'executeTransaction', [target, value, signature, data, eta], { from: notAdmin })
-      ).rejects.toRevert('revert Timelock::executeTransaction: Call must come from admin.');
+      ).rejects.toRevertLive('Returned error: execution reverted: Timelock::executeTransaction: Call must come from admin.');
     });
 
     it('requires transaction to be queued', async () => {
       const differentEta = eta.plus(1);
       await expect(
         send(timelock, 'executeTransaction', [target, value, signature, data, differentEta], { from: root })
-      ).rejects.toRevert("revert Timelock::executeTransaction: Transaction hasn't been queued.");
+      ).rejects.toRevertLive("Returned error: execution reverted: Timelock::executeTransaction: Transaction hasn't been queued.");
     });
 
     it('requires timestamp to be greater than or equal to eta', async () => {
@@ -222,40 +225,76 @@ describe('Timelock', () => {
         send(timelock, 'executeTransaction', [target, value, signature, data, eta], {
           from: root
         })
-      ).rejects.toRevert(
-        "revert Timelock::executeTransaction: Transaction hasn't surpassed time lock."
+      ).rejects.toRevertLive(
+        "Returned error: execution reverted: Timelock::executeTransaction: Transaction hasn't surpassed time lock."
       );
     });
 
     it('requires timestamp to be less than eta plus gracePeriod', async () => {
-      await freezeTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
+//       await freezeTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
+
+      await send(timelock, 'harnessSetDelay', [0], { from: root });
+      let etaNew = (new BigNumber((await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp)).plus(2);
+      await send(timelock, 'queueTransaction', [target, value, signature, data, etaNew], {
+        from: root
+      });
+
+      await sleep(15000);
 
       await expect(
-        send(timelock, 'executeTransaction', [target, value, signature, data, eta], {
+        send(timelock, 'executeTransaction', [target, value, signature, data, etaNew], {
           from: root
         })
-      ).rejects.toRevert('revert Timelock::executeTransaction: Transaction is stale.');
+      ).rejects.toRevertLive('Returned error: execution reverted: Timelock::executeTransaction: Transaction is stale.');
     });
 
     it('requires target.call transaction to succeed', async () => {
-      await freezeTime(eta.toNumber());
+//       await freezeTime(eta.toNumber());
+
+      await send(timelock, 'harnessSetDelay', [0], { from: root });
+      let etaNew = (new BigNumber((await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp)).plus(2);
+
+      // Queue transaction that will revert when executed
+      await send(timelock, 'queueTransaction', [target, value, signature, revertData, etaNew], {
+        from: root
+      });
+
+      await sleep(1000);
 
       await expect(
-        send(timelock, 'executeTransaction', [target, value, signature, revertData, eta], {
+        send(timelock, 'executeTransaction', [target, value, signature, revertData, etaNew], {
           from: root
         })
-      ).rejects.toRevert('revert Timelock::executeTransaction: Transaction execution reverted.');
+      ).rejects.toRevertLive('Returned error: execution reverted: Timelock::executeTransaction: Transaction execution reverted.');
     });
 
     it('sets hash from true to false in queuedTransactions mapping, updates delay, and emits ExecuteTransaction event', async () => {
+      delay = new BigNumber(5);
+      await send(timelock, 'harnessSetDelay', [delay], { from: root });
+      eta = (new BigNumber((await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp)).plus(delay).plus(5);
+      newDelay = delay.multipliedBy(2);
+      data = encodeParameters(['uint256'], [newDelay.toFixed()]);
+
+      queuedTxHash = keccak256(
+        encodeParameters(
+          ['address', 'uint256', 'string', 'bytes', 'uint256'],
+          [target, value.toString(), signature, data, eta.toString()]
+        )
+      );
+
+      await send(timelock, 'queueTransaction', [target, value, signature, data, eta], {
+        from: root
+      });
+
       const configuredDelayBefore = await call(timelock, 'delay');
       expect(configuredDelayBefore).toEqual(delay.toString());
 
       const queueTransactionsHashValueBefore = await call(timelock, 'queuedTransactions', [queuedTxHash]);
       expect(queueTransactionsHashValueBefore).toEqual(true);
 
-      const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
-      await freezeTime(newBlockTimestamp.toNumber());
+//       const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
+//       await freezeTime(newBlockTimestamp.toNumber());
+      await sleep(5000);
 
       const result = await send(timelock, 'executeTransaction', [target, value, signature, data, eta], {
         from: root
@@ -289,7 +328,7 @@ describe('Timelock', () => {
       delay = etherUnsigned(configuredDelay);
       signature = 'setPendingAdmin(address)';
       data = encodeParameters(['address'], [newAdmin]);
-      eta = blockTimestamp.plus(delay);
+      eta = blockTimestamp.plus(delay).plus(5);
 
       queuedTxHash = keccak256(
         encodeParameters(
@@ -306,45 +345,71 @@ describe('Timelock', () => {
     it('requires admin to be msg.sender', async () => {
       await expect(
         send(timelock, 'executeTransaction', [target, value, signature, data, eta], { from: notAdmin })
-      ).rejects.toRevert('revert Timelock::executeTransaction: Call must come from admin.');
+      ).rejects.toRevertLive('Returned error: execution reverted: Timelock::executeTransaction: Call must come from admin.');
     });
 
     it('requires transaction to be queued', async () => {
       const differentEta = eta.plus(1);
       await expect(
         send(timelock, 'executeTransaction', [target, value, signature, data, differentEta], { from: root })
-      ).rejects.toRevert("revert Timelock::executeTransaction: Transaction hasn't been queued.");
+      ).rejects.toRevertLive("Returned error: execution reverted: Timelock::executeTransaction: Transaction hasn't been queued.");
     });
+
 
     it('requires timestamp to be greater than or equal to eta', async () => {
       await expect(
         send(timelock, 'executeTransaction', [target, value, signature, data, eta], {
           from: root
         })
-      ).rejects.toRevert(
-        "revert Timelock::executeTransaction: Transaction hasn't surpassed time lock."
+      ).rejects.toRevertLive(
+        "Returned error: execution reverted: Timelock::executeTransaction: Transaction hasn't surpassed time lock."
       );
     });
 
-    it('requires timestamp to be less than eta plus gracePeriod', async () => {
-      await freezeTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
 
+    it('requires timestamp to be less than eta plus gracePeriod', async () => {
+//       await freezeTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
+
+      await send(timelock, 'harnessSetDelay', [0], { from: root });
+      let etaNew = (new BigNumber((await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp)).plus(2);
+      await send(timelock, 'queueTransaction', [target, value, signature, data, etaNew], {
+        from: root
+      });
+
+      await sleep(15000);
+        
       await expect(
-        send(timelock, 'executeTransaction', [target, value, signature, data, eta], {
+        send(timelock, 'executeTransaction', [target, value, signature, data, etaNew], {
           from: root
         })
-      ).rejects.toRevert('revert Timelock::executeTransaction: Transaction is stale.');
+      ).rejects.toRevertLive('Returned error: execution reverted: Timelock::executeTransaction: Transaction is stale.');
     });
 
     it('sets hash from true to false in queuedTransactions mapping, updates admin, and emits ExecuteTransaction event', async () => {
+      delay = new BigNumber(5);
+      await send(timelock, 'harnessSetDelay', [delay], { from: root });
+      eta = (new BigNumber((await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp)).plus(delay).plus(5);
+
+      queuedTxHash = keccak256(
+        encodeParameters(
+          ['address', 'uint256', 'string', 'bytes', 'uint256'],
+          [target, value.toString(), signature, data, eta.toString()]
+        )
+      );
+
+      await send(timelock, 'queueTransaction', [target, value, signature, data, eta], {
+        from: root
+      });
+
       const configuredPendingAdminBefore = await call(timelock, 'pendingAdmin');
       expect(configuredPendingAdminBefore).toEqual('0x0000000000000000000000000000000000000000');
 
       const queueTransactionsHashValueBefore = await call(timelock, 'queuedTransactions', [queuedTxHash]);
       expect(queueTransactionsHashValueBefore).toEqual(true);
 
-      const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
-      await freezeTime(newBlockTimestamp.toNumber())
+//       const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
+//       await freezeTime(newBlockTimestamp.toNumber())
+      await sleep(4000);
 
       const result = await send(timelock, 'executeTransaction', [target, value, signature, data, eta], {
         from: root

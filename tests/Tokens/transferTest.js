@@ -10,7 +10,7 @@ describe('CToken', function () {
     it("cannot transfer from a zero balance", async () => {
       const cToken = await makeCToken({supportMarket: true});
       expect(await call(cToken, 'balanceOf', [root])).toEqualNumber(0);
-      await expect(send(cToken, 'transfer', [accounts[0], 100])).rejects.toRevert();
+      await expect(send(cToken, 'transfer', [accounts[0], 100])).rejects.toRevertLive("Returned error: execution reverted");
     });
 
     it("transfers 50 tokens", async () => {
@@ -26,7 +26,7 @@ describe('CToken', function () {
       const cToken = await makeCToken({supportMarket: true});
       await send(cToken, 'harnessSetBalance', [root, 100]);
       expect(await call(cToken, 'balanceOf', [root])).toEqualNumber(100);
-      await expect(send(cToken, 'transfer', [root, 50])).rejects.toRevertWithCustomError('TransferNotAllowed');
+      await expect(send(cToken, 'transfer', [root, 50])).rejects.toRevertWithCustomErrorLive('TransferNotAllowed');
     });
 
     it("rejects transfer when not allowed and reverts if not verified", async () => {
@@ -35,12 +35,12 @@ describe('CToken', function () {
       expect(await call(cToken, 'balanceOf', [root])).toEqualNumber(100);
 
       await send(cToken.comptroller, 'setTransferAllowed', [false])
-      await expect(send(cToken, 'transfer', [root, 50])).rejects.toRevertWithCustomError('TransferComptrollerRejection', [11]);
+      await expect(send(cToken, 'transfer', [root, 50])).rejects.toRevertWithCustomErrorLive('TransferComptrollerRejection', [11]);
 
       await send(cToken.comptroller, 'setTransferAllowed', [true])
       await send(cToken.comptroller, 'setTransferVerify', [false])
       // no longer support verifyTransfer on cToken end
-      // await expect(send(cToken, 'transfer', [accounts[0], 50])).rejects.toRevert("revert transferVerify rejected transfer");
+      // await expect(send(cToken, 'transfer', [accounts[0], 50])).rejects.toRevertLive("Returned error: execution reverted: transferVerify rejected transfer");
     });
   });
 });

@@ -72,7 +72,7 @@ describe('CToken', function () {
 
     it("fails if comptroller tells it to", async () => {
       await send(cToken.comptroller, 'setMintAllowed', [false]);
-      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevertWithCustomError(
+      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevertWithCustomErrorLive(
         'MintComptrollerRejection', [11]
       );
     });
@@ -83,7 +83,7 @@ describe('CToken', function () {
 
     it("fails if not fresh", async () => {
       await fastForward(cToken);
-      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevertWithCustomError('MintFreshnessCheck');
+      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevertWithCustomErrorLive('MintFreshnessCheck');
     });
 
     it("continues if fresh", async () => {
@@ -95,12 +95,12 @@ describe('CToken', function () {
       expect(
         await send(cToken.underlying, 'approve', [cToken._address, 1], {from: minter})
       ).toSucceed();
-      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevert('revert Insufficient allowance');
+      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevertLive('Returned error: execution reverted: Insufficient allowance');
     });
 
     it("fails if insufficient balance", async() => {
       await setBalance(cToken.underlying, minter, 1);
-      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevert('revert Insufficient balance');
+      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevertLive('Returned error: execution reverted: Insufficient balance');
     });
 
     it("proceeds if sufficient approval and balance", async () =>{
@@ -109,12 +109,12 @@ describe('CToken', function () {
 
     it("fails if exchange calculation fails", async () => {
       expect(await send(cToken, 'harnessSetExchangeRate', [0])).toSucceed();
-      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevert();
+      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevertLive("Returned error: execution reverted");
     });
 
     it("fails if transferring in fails", async () => {
       await send(cToken.underlying, 'harnessSetFailTransferFromAddress', [minter, true]);
-      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevert('revert TOKEN_TRANSFER_IN_FAILED');
+      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevertLive('Returned error: execution reverted: TOKEN_TRANSFER_IN_FAILED');
     });
 
     it("transfers the underlying cash, tokens, and emits Mint, Transfer events", async () => {
@@ -148,12 +148,12 @@ describe('CToken', function () {
 
     it("emits a mint failure if interest accrual fails", async () => {
       await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
-      await expect(quickMint(cToken, minter, mintAmount)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+      await expect(quickMint(cToken, minter, mintAmount)).rejects.toRevertLive("Returned error: execution reverted: INTEREST_RATE_MODEL_ERROR");
     });
 
     it("returns error from mintFresh without emitting any extra logs", async () => {
       await send(cToken.underlying, 'harnessSetBalance', [minter, 1]);
-      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevert('revert Insufficient balance');
+      await expect(mintFresh(cToken, minter, mintAmount)).rejects.toRevertLive('Returned error: execution reverted: Insufficient balance');
     });
 
     it("returns success from mintFresh and mints the correct number of tokens", async () => {
@@ -180,7 +180,7 @@ describe('CToken', function () {
 
       it("fails if comptroller tells it to", async () =>{
         await send(cToken.comptroller, 'setRedeemAllowed', [false]);
-        await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevertWithCustomError(
+        await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevertWithCustomErrorLive(
           'RedeemComptrollerRejection', [11]
         );
       });
@@ -188,7 +188,7 @@ describe('CToken', function () {
       it("fails if not fresh", async () => {
         await fastForward(cToken);
         await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount))
-          .rejects.toRevertWithCustomError('RedeemFreshnessCheck')
+          .rejects.toRevertWithCustomErrorLive('RedeemFreshnessCheck')
       });
 
       it("continues if fresh", async () => {
@@ -199,32 +199,32 @@ describe('CToken', function () {
       it("fails if insufficient protocol cash to transfer out", async() => {
         await send(cToken.underlying, 'harnessSetBalance', [cToken._address, 1]);
         await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects
-          .toRevertWithCustomError('RedeemTransferOutNotPossible');
+          .toRevertWithCustomErrorLive('RedeemTransferOutNotPossible');
       });
 
       it("fails if exchange calculation fails", async () => {
         if (redeemFresh == redeemFreshTokens) {
           expect(await send(cToken, 'harnessSetExchangeRate', [UInt256Max()])).toSucceed();
-          await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevert();
+          await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevertLive("Returned error: execution reverted");
         } else {
           expect(await send(cToken, 'harnessSetExchangeRate', [0])).toSucceed();
-          await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevert();
+          await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevertLive("Returned error: execution reverted");
         }
       });
 
       it("fails if transferring out fails", async () => {
         await send(cToken.underlying, 'harnessSetFailTransferToAddress', [redeemer, true]);
-        await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevert("revert TOKEN_TRANSFER_OUT_FAILED");
+        await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevertLive("Returned error: execution reverted: TOKEN_TRANSFER_OUT_FAILED");
       });
 
       it("fails if total supply < redemption amount", async () => {
         await send(cToken, 'harnessExchangeRateDetails', [0, 0, 0]);
-        await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevert();
+        await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevertLive("Returned error: execution reverted");
       });
 
       it("reverts if new account balance underflows", async () => {
         await send(cToken, 'harnessSetBalance', [redeemer, 0]);
-        await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevert();
+        await expect(redeemFresh(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevertLive("Returned error: execution reverted");
       });
 
       it("transfers the underlying cash, tokens, and emits Redeem, Transfer events", async () => {
@@ -259,12 +259,12 @@ describe('CToken', function () {
 
     it("emits a redeem failure if interest accrual fails", async () => {
       await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
-      await expect(quickRedeem(cToken, redeemer, redeemTokens)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+      await expect(quickRedeem(cToken, redeemer, redeemTokens)).rejects.toRevertLive("Returned error: execution reverted: INTEREST_RATE_MODEL_ERROR");
     });
 
     it("returns error from redeemFresh without emitting any extra logs", async () => {
       await setBalance(cToken.underlying, cToken._address, 0);
-      await expect(quickRedeem(cToken, redeemer, redeemTokens, {exchangeRate})).rejects.toRevert();
+      await expect(quickRedeem(cToken, redeemer, redeemTokens, {exchangeRate})).rejects.toRevertLive("Returned error: execution reverted");
     });
 
     it("returns success from redeemFresh and redeems the right amount", async () => {

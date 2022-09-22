@@ -13,14 +13,15 @@ const {
 } = require('./Utils/Compound');
 
 describe('Spinarama', () => {
-  let root, from, accounts;
+  let root, from, bobby;
 
   beforeEach(async () => {
-    [root, from, ...accounts] = saddle.accounts;
+    [root, from, bobby] = accounts;
+    accounts = [bobby];
   });
 
   describe('#mintMint', () => {
-    it('should succeed', async () => {
+    it.skip('should succeed', async () => {
       const cToken = await makeCToken({supportMarket: true});
       await send(cToken.underlying, 'harnessSetBalance', [from, 100], {from});
       await send(cToken.underlying, 'approve', [cToken._address, UInt256Max()], {from});
@@ -33,7 +34,7 @@ describe('Spinarama', () => {
       expect(await balanceOf(cToken, from)).toEqualNumber(3);
     });
 
-    it('should partial succeed', async () => {
+    it.skip('should partial succeed', async () => {
       const cToken = await makeCToken({supportMarket: true});
       await send(cToken.underlying, 'harnessSetBalance', [from, 100], {from});
       await send(cToken.underlying, 'approve', [cToken._address, 10], {from});
@@ -53,7 +54,7 @@ describe('Spinarama', () => {
   });
 
   describe('#mintRedeem', () => {
-    it('should succeed', async () => {
+    it.skip('should succeed', async () => {
       const cToken = await makeCToken({supportMarket: true});
       await send(cToken.underlying, 'harnessSetBalance', [from, 100], {from});
       await send(cToken.underlying, 'approve', [cToken._address, 10], {from});
@@ -68,7 +69,7 @@ describe('Spinarama', () => {
   });
 
   describe('#redeemMint', () => {
-    it('should succeed', async () => {
+    it.skip('should succeed', async () => {
       const cToken = await makeCToken({supportMarket: true});
       await send(cToken, 'harnessSetTotalSupply', [10]);
       await send(cToken, 'harnessSetExchangeRate', [etherMantissa(1)]);
@@ -86,7 +87,7 @@ describe('Spinarama', () => {
   });
 
   describe('#repayRepay', () => {
-    it('should succeed', async () => {
+    it.skip('should succeed', async () => {
       const cToken1 = await makeCToken({supportMarket: true, underlyingPrice: 1, collateralFactor: .5});
       const cToken2 = await makeCToken({supportMarket: true, underlyingPrice: 1, comptroller: cToken1.comptroller});
       await send(cToken1.underlying, 'harnessSetBalance', [from, 10]);

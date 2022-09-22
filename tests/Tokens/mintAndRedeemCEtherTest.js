@@ -72,7 +72,7 @@ describe('CEther', () => {
 
       it("reverts if interest accrual fails", async () => {
         await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
-        await expect(mint(cToken, minter, mintAmount)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+        await expect(mint(cToken, minter, mintAmount)).rejects.toRevertLive("Returned error: execution reverted: INTEREST_RATE_MODEL_ERROR");
       });
 
       it("returns success from mintFresh and mints the correct number of tokens", async () => {
@@ -99,11 +99,11 @@ describe('CEther', () => {
 
       it("emits a redeem failure if interest accrual fails", async () => {
         await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
-        await expect(redeem(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+        await expect(redeem(cToken, redeemer, redeemTokens, redeemAmount)).rejects.toRevertLive("Returned error: execution reverted: INTEREST_RATE_MODEL_ERROR");
       });
 
       it("returns error from redeemFresh without emitting any extra logs", async () => {
-        await expect(redeem(cToken, redeemer, redeemTokens.multipliedBy(5), redeemAmount.multipliedBy(5))).rejects.toRevert();
+        await expect(redeem(cToken, redeemer, redeemTokens.multipliedBy(5), redeemAmount.multipliedBy(5))).rejects.toRevertLive("Returned error: execution reverted");
       });
 
       it("returns success from redeemFresh and redeems the correct amount", async () => {

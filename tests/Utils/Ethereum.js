@@ -55,7 +55,7 @@ function mergeInterface(into, from) {
 }
 
 function getContractDefaults() {
-  return { gas: 20000000, gasPrice: 20000 };
+  return { gas: 20000000, gasPrice: 200000000000 };
 }
 
 function keccak256(values) {

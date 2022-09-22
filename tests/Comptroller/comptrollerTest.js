@@ -75,13 +75,13 @@ describe('Comptroller', () => {
     });
 
     it.skip("reverts if passed a contract that doesn't implement isPriceOracle", async () => {
-      await expect(send(comptroller, '_setPriceOracle', [comptroller._address])).rejects.toRevert();
+      await expect(send(comptroller, '_setPriceOracle', [comptroller._address])).rejects.toRevertLive("Returned error: execution reverted");
       expect(await call(comptroller, 'oracle')).toEqual(oldOracle._address);
     });
 
     it.skip("reverts if passed a contract that implements isPriceOracle as false", async () => {
       await send(newOracle, 'setIsPriceOracle', [false]); // Note: not yet implemented
-      await expect(send(notOracle, '_setPriceOracle', [comptroller._address])).rejects.toRevert("revert oracle method isPriceOracle returned false");
+      await expect(send(notOracle, '_setPriceOracle', [comptroller._address])).rejects.toRevertLive("Returned error: execution reverted: oracle method isPriceOracle returned false");
       expect(await call(comptroller, 'oracle')).toEqual(oldOracle._address);
     });
 
@@ -101,7 +101,7 @@ describe('Comptroller', () => {
       const cToken = await makeCToken();
       await expect(
         send(cToken.comptroller, '_setCloseFactor', [1], {from: accounts[0]})
-      ).rejects.toRevert('revert only admin can set close factor');
+      ).rejects.toRevertLive('Returned error: execution reverted: only admin can set close factor');
     });
   });
 
@@ -152,7 +152,7 @@ describe('Comptroller', () => {
     it("fails if asset is not a CToken", async () => {
       const comptroller = await makeComptroller()
       const asset = await makeToken(root);
-      await expect(send(comptroller, '_supportMarket', [asset._address])).rejects.toRevert();
+      await expect(send(comptroller, '_supportMarket', [asset._address])).rejects.toRevertLive("Returned error: execution reverted");
     });
 
     it("succeeds and sets market", async () => {
@@ -195,7 +195,7 @@ describe('Comptroller', () => {
     it('should not allow you to redeem 5 underlying for 0 tokens', async () => {
       const comptroller = await makeComptroller();
       const cToken = await makeCToken({comptroller: comptroller});
-      await expect(call(comptroller, 'redeemVerify', [cToken._address, accounts[0], 5, 0])).rejects.toRevert("revert redeemTokens zero");
+      await expect(call(comptroller, 'redeemVerify', [cToken._address, accounts[0], 5, 0])).rejects.toRevertLive("Returned error: execution reverted: redeemTokens zero");
     });
   })
 });

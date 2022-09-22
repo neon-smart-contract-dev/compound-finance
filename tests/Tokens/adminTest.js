@@ -25,7 +25,7 @@ describe('admin / _setPendingAdmin / _acceptAdmin', () => {
     it('should only be callable by admin', async () => {
       await expect(
         send(cToken, '_setPendingAdmin', [accounts[0]], {from: accounts[0]})
-      ).rejects.toRevertWithCustomError(
+      ).rejects.toRevertWithCustomErrorLive(
         'SetPendingAdminOwnerCheck'
       );
 
@@ -64,7 +64,7 @@ describe('admin / _setPendingAdmin / _acceptAdmin', () => {
     it('should fail when pending admin is zero', async () => {
       await expect(
         send(cToken, '_acceptAdmin')
-      ).rejects.toRevertWithCustomError(
+      ).rejects.toRevertWithCustomErrorLive(
         'AcceptAdminPendingAdminCheck'
       );
 
@@ -77,7 +77,7 @@ describe('admin / _setPendingAdmin / _acceptAdmin', () => {
       expect(await send(cToken, '_setPendingAdmin', [accounts[0]])).toSucceed();
       await expect(
         send(cToken, '_acceptAdmin')
-      ).rejects.toRevertWithCustomError(
+      ).rejects.toRevertWithCustomErrorLive(
         'AcceptAdminPendingAdminCheck'
       );
 

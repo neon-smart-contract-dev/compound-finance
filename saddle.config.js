@@ -49,7 +49,8 @@ module.exports = {
         {unlocked: 0}                                       // Else, try to grab first "unlocked" account from provider
       ]
     },
-    test: {
+    // test_ganache
+    test_ganache: {
       providers: [
         {
           ganache: {
@@ -237,7 +238,8 @@ module.exports = {
         {unlocked: 0}
       ]
     },
-    neon_local: {
+    // neon_local
+    test: {
       providers: [
         {env: "PROVIDER"},
         {http: "http://localhost:9090/solana"}

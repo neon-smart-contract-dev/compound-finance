@@ -28,18 +28,18 @@ describe('CToken', function () {
     it("rejects change by non-admin", async () => {
       await expect(
         send(cToken, 'harnessSetReserveFactorFresh', [factor], {from: accounts[0]})
-      ).rejects.toRevertWithCustomError('SetReserveFactorAdminCheck');
+      ).rejects.toRevertWithCustomErrorLive('SetReserveFactorAdminCheck');
       expect(await call(cToken, 'reserveFactorMantissa')).toEqualNumber(0);
     });
 
     it("rejects change if market not fresh", async () => {
       expect(await send(cToken, 'harnessFastForward', [5])).toSucceed();
-      await expect(send(cToken, 'harnessSetReserveFactorFresh', [factor])).rejects.toRevertWithCustomError('SetReserveFactorFreshCheck');
+      await expect(send(cToken, 'harnessSetReserveFactorFresh', [factor])).rejects.toRevertWithCustomErrorLive('SetReserveFactorFreshCheck');
       expect(await call(cToken, 'reserveFactorMantissa')).toEqualNumber(0);
     });
 
     it("rejects newReserveFactor that descales to 1", async () => {
-      await expect(send(cToken, 'harnessSetReserveFactorFresh', [etherMantissa(1.01)])).rejects.toRevertWithCustomError('SetReserveFactorBoundsCheck');
+      await expect(send(cToken, 'harnessSetReserveFactorFresh', [etherMantissa(1.01)])).rejects.toRevertWithCustomErrorLive('SetReserveFactorBoundsCheck');
       expect(await call(cToken, 'reserveFactorMantissa')).toEqualNumber(0);
     });
 
@@ -80,12 +80,12 @@ describe('CToken', function () {
     it("emits a reserve factor failure if interest accrual fails", async () => {
       await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
       await fastForward(cToken, 1);
-      await expect(send(cToken, '_setReserveFactor', [factor])).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+      await expect(send(cToken, '_setReserveFactor', [factor])).rejects.toRevertLive("Returned error: execution reverted: INTEREST_RATE_MODEL_ERROR");
       expect(await call(cToken, 'reserveFactorMantissa')).toEqualNumber(0);
     });
 
     it("returns error from setReserveFactorFresh without emitting any extra logs", async () => {
-      await expect(send(cToken, '_setReserveFactor', [etherMantissa(2)])).rejects.toRevert();
+      await expect(send(cToken, '_setReserveFactor', [etherMantissa(2)])).rejects.toRevertLive("Returned error: execution reverted");
       expect(await call(cToken, 'reserveFactorMantissa')).toEqualNumber(0);
     });
 
@@ -110,25 +110,25 @@ describe('CToken', function () {
     it("fails if called by non-admin", async () => {
       await expect(
         send(cToken, 'harnessReduceReservesFresh', [reduction], {from: accounts[0]})
-      ).rejects.toRevertWithCustomError('ReduceReservesAdminCheck');
+      ).rejects.toRevertWithCustomErrorLive('ReduceReservesAdminCheck');
       expect(await call(cToken, 'totalReserves')).toEqualNumber(reserves);
     });
 
     it("fails if market not fresh", async () => {
       expect(await send(cToken, 'harnessFastForward', [5])).toSucceed();
-      await expect(send(cToken, 'harnessReduceReservesFresh', [reduction])).rejects.toRevertWithCustomError('ReduceReservesFreshCheck');
+      await expect(send(cToken, 'harnessReduceReservesFresh', [reduction])).rejects.toRevertWithCustomErrorLive('ReduceReservesFreshCheck');
       expect(await call(cToken, 'totalReserves')).toEqualNumber(reserves);
     });
 
     it("fails if amount exceeds reserves", async () => {
-      await expect(send(cToken, 'harnessReduceReservesFresh', [reserves.plus(1)])).rejects.toRevertWithCustomError('ReduceReservesCashValidation');
+      await expect(send(cToken, 'harnessReduceReservesFresh', [reserves.plus(1)])).rejects.toRevertWithCustomErrorLive('ReduceReservesCashValidation');
       expect(await call(cToken, 'totalReserves')).toEqualNumber(reserves);
     });
 
     it("fails if amount exceeds available cash", async () => {
       const cashLessThanReserves = reserves.minus(2);
       await send(cToken.underlying, 'harnessSetBalance', [cToken._address, cashLessThanReserves]);
-      await expect(send(cToken, 'harnessReduceReservesFresh', [reserves])).rejects.toRevertWithCustomError('ReduceReservesCashNotAvailable');
+      await expect(send(cToken, 'harnessReduceReservesFresh', [reserves])).rejects.toRevertWithCustomErrorLive('ReduceReservesCashNotAvailable');
       expect(await call(cToken, 'totalReserves')).toEqualNumber(reserves);
     });
 
@@ -163,11 +163,11 @@ describe('CToken', function () {
     it("emits a reserve-reduction failure if interest accrual fails", async () => {
       await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
       await fastForward(cToken, 1);
-      await expect(send(cToken, '_reduceReserves', [reduction])).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+      await expect(send(cToken, '_reduceReserves', [reduction])).rejects.toRevertLive("Returned error: execution reverted: INTEREST_RATE_MODEL_ERROR");
     });
 
     it("returns error from _reduceReservesFresh without emitting any extra logs", async () => {
-      await expect(send(cToken, 'harnessReduceReservesFresh', [reserves.plus(1)])).rejects.toRevert();
+      await expect(send(cToken, 'harnessReduceReservesFresh', [reserves.plus(1)])).rejects.toRevertLive("Returned error: execution reverted");
     });
 
     it("returns success code from _reduceReservesFresh and reduces the correct amount", async () => {

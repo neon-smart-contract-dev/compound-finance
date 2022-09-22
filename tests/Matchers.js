@@ -284,7 +284,6 @@ function revertLive(actual, msg) {
   }
 }
 
-
 function revertWithCustomError(actual, errorName, errorArgs, reporter) {
   const correctMessage = !!actual['message'] && actual.message === `VM Exception while processing transaction: revert`
   const err = reporter.CustomErrors[errorName]
@@ -293,6 +292,29 @@ function revertWithCustomError(actual, errorName, errorArgs, reporter) {
     const c = new ethers.utils.Interface([err])
     const expectedReturn = c.functions[errorName].encode(errorArgs)
     matchingError = Object.values(actual.results).findIndex(v => v.error === 'revert' && v.return === expectedReturn) >= 0
+  }
+  return {
+    pass: correctMessage && matchingError,
+    message: () => {
+      if (correctMessage && !!err) {
+        return `did not find Custom Error: ${errorName}(${errorArgs.join(',')})`
+      } else if (!err) {
+        return `Custom Error not found`
+      } else {
+        return `expected revert, but transaction succeeded: ${JSON.stringify(actual)}`
+      }
+    }
+  }
+}
+
+function revertWithCustomErrorLive(actual, errorName, errorArgs, reporter) {
+  const correctMessage = !!actual['message'] && actual.message === `Returned error: execution reverted`
+  const err = reporter.CustomErrors[errorName]
+  let matchingError = false
+  if (correctMessage && !!err) {
+    const c = new ethers.utils.Interface([err])
+    const expectedReturn = c.functions[errorName].encode(errorArgs)
+    matchingError = Object.values(actual).findIndex(v => v === expectedReturn) >= 0
   }
   return {
     pass: correctMessage && matchingError,
@@ -324,7 +346,6 @@ function toBeWithinDelta(received, expected, delta) {
     };
   }
 };
-
 
 expect.extend({
   toBeAddressZero(actual) {
@@ -400,6 +421,10 @@ expect.extend({
 
   toRevertWithCustomError(actual, errorName, errorArgs=[], reporter=TokenErr) {
     return revertWithCustomError.call(this, actual, errorName, errorArgs, reporter)
+  },
+
+  toRevertWithCustomErrorLive(actual, errorName, errorArgs=[], reporter=TokenErr) {
+    return revertWithCustomErrorLive.call(this, actual, errorName, errorArgs, reporter)
   },
 
   toRevertWithError(trx, expectedErrorName, reason='revert', reporter=TokenErr) {

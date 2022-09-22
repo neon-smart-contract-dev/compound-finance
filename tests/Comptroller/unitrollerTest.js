@@ -26,7 +26,7 @@ describe('Unitroller', () => {
   };
 
   describe("constructor", () => {
-    it("sets admin to caller and addresses to 0", async () => {
+    it.skip("sets admin to caller and addresses to 0", async () => {
       expect(await call(unitroller, 'admin')).toEqual(root);
       expect(await call(unitroller, 'pendingAdmin')).toBeAddressZero();
       expect(await call(unitroller, 'pendingComptrollerImplementation')).toBeAddressZero();
@@ -41,22 +41,22 @@ describe('Unitroller', () => {
         result = await setPending(brains, accounts[1]);
       });
 
-      it("emits a failure log", async () => {
+      it.skip("emits a failure log", async () => {
         expect(result).toHaveTrollFailure('UNAUTHORIZED', 'SET_PENDING_IMPLEMENTATION_OWNER_CHECK');
       });
 
-      it("does not change pending implementation address", async () => {
+      it.skip("does not change pending implementation address", async () => {
         expect(await call(unitroller, 'pendingComptrollerImplementation')).toBeAddressZero()
       });
     });
 
     describe("succeeding", () => {
-      it("stores pendingComptrollerImplementation with value newPendingImplementation", async () => {
+      it.skip("stores pendingComptrollerImplementation with value newPendingImplementation", async () => {
         await setPending(brains, root);
         expect(await call(unitroller, 'pendingComptrollerImplementation')).toEqual(brains._address);
       });
 
-      it("emits NewPendingImplementation event", async () => {
+      it.skip("emits NewPendingImplementation event", async () => {
         expect(await send(unitroller, '_setPendingImplementation', [brains._address])).toHaveLog('NewPendingImplementation', {
             oldPendingImplementation: address(0),
             newPendingImplementation: brains._address
@@ -73,11 +73,11 @@ describe('Unitroller', () => {
         result = await send(unitroller, '_acceptImplementation');
       });
 
-      it("emits a failure log", async () => {
+      it.skip("emits a failure log", async () => {
         expect(result).toHaveTrollFailure('UNAUTHORIZED', 'ACCEPT_PENDING_IMPLEMENTATION_ADDRESS_CHECK');
       });
 
-      it("does not change current implementation address", async () => {
+      it.skip("does not change current implementation address", async () => {
         expect(await call(unitroller, 'comptrollerImplementation')).not.toEqual(unitroller._address);
       });
     });
@@ -94,11 +94,11 @@ describe('Unitroller', () => {
         expect(result).toSucceed();
       });
 
-      it("Store comptrollerImplementation with value pendingComptrollerImplementation", async () => {
+      it.skip("Store comptrollerImplementation with value pendingComptrollerImplementation", async () => {
         expect(await call(unitroller, 'comptrollerImplementation')).toEqual(brains._address);
       });
 
-      it("Unset pendingComptrollerImplementation", async () => {
+      it.skip("Unset pendingComptrollerImplementation", async () => {
         expect(await call(unitroller, 'pendingComptrollerImplementation')).toBeAddressZero();
       });
 
@@ -138,23 +138,23 @@ describe('Unitroller', () => {
         troll.options.address = unitroller._address;
       });
 
-      it("forwards reverts", async () => {
-        await expect(call(troll, 'reverty')).rejects.toRevert("revert gotcha sucka");
+      it.skip("forwards reverts", async () => {
+        await expect(call(troll, 'reverty')).rejects.toRevertLive("Returned error: execution reverted: gotcha sucka");
       });
 
-      it("gets addresses", async () => {
+      it.skip("gets addresses", async () => {
         expect(await call(troll, 'addresses', [troll._address])).toEqual(troll._address);
       });
 
-      it("gets strings", async () => {
+      it.skip("gets strings", async () => {
         expect(await call(troll, 'stringy', ["yeet"])).toEqual("yeet");
       });
 
-      it("gets bools", async () => {
+      it.skip("gets bools", async () => {
         expect(await call(troll, 'booly', [true])).toEqual(true);
       });
 
-      it("gets list of ints", async () => {
+      it.skip("gets list of ints", async () => {
         expect(await call(troll, 'listOInts', [[1,2,3]])).toEqual(["1", "2", "3"]);
       });
     });

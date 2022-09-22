@@ -77,7 +77,7 @@ describe('CEther', function () {
 
     it("fails if comptroller tells it to", async () => {
       await send(cToken.comptroller, 'setBorrowAllowed', [false]);
-      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevertWithCustomError('BorrowComptrollerRejection', [11]);
+      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevertWithCustomErrorLive('BorrowComptrollerRejection', [11]);
     });
 
     it("proceeds if comptroller tells it to", async () => {
@@ -86,7 +86,7 @@ describe('CEther', function () {
 
     it("fails if market not fresh", async () => {
       await fastForward(cToken);
-      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevertWithCustomError('BorrowFreshnessCheck');
+      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevertWithCustomErrorLive('BorrowFreshnessCheck');
     });
 
     it("continues if fresh", async () => {
@@ -95,32 +95,32 @@ describe('CEther', function () {
     });
 
     it("fails if protocol has less than borrowAmount of underlying", async () => {
-      await expect(borrowFresh(cToken, borrower, borrowAmount.plus(1))).rejects.toRevertWithCustomError('BorrowCashNotAvailable');
+      await expect(borrowFresh(cToken, borrower, borrowAmount.plus(1))).rejects.toRevertWithCustomErrorLive('BorrowCashNotAvailable');
     });
 
     it("fails if borrowBalanceStored fails (due to non-zero stored principal with zero account index)", async () => {
       await pretendBorrow(cToken, borrower, 0, 3e18, 5e18);
-      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevert();
+      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevertLive("Returned error: execution reverted");
     });
 
     it("fails if calculating account new total borrow balance overflows", async () => {
       await pretendBorrow(cToken, borrower, 1e-18, 1e-18, UInt256Max());
-      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevert();
+      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevertLive("Returned error: execution reverted");
     });
 
     it("fails if calculation of new total borrow balance overflows", async () => {
       await send(cToken, 'harnessSetTotalBorrows', [UInt256Max()]);
-      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevert();
+      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevertLive("Returned error: execution reverted");
     });
 
     it("reverts if transfer out fails", async () => {
       await send(cToken, 'harnessSetFailTransferToAddress', [borrower, true]);
-      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevert("revert TOKEN_TRANSFER_OUT_FAILED");
+      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevertLive("Returned error: execution reverted: TOKEN_TRANSFER_OUT_FAILED");
     });
 
     xit("reverts if borrowVerify fails", async() => {
       await send(cToken.comptroller, 'setBorrowVerify', [false]);
-      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevert("revert borrowVerify rejected borrow");
+      await expect(borrowFresh(cToken, borrower, borrowAmount)).rejects.toRevertLive("Returned error: execution reverted: borrowVerify rejected borrow");
     });
 
     it("transfers the underlying cash, tokens, and emits Borrow event", async () => {
@@ -160,11 +160,11 @@ describe('CEther', function () {
     it("emits a borrow failure if interest accrual fails", async () => {
       await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
       await send(cToken, 'harnessFastForward', [1]);
-      await expect(borrow(cToken, borrower, borrowAmount)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+      await expect(borrow(cToken, borrower, borrowAmount)).rejects.toRevertLive("Returned error: execution reverted: INTEREST_RATE_MODEL_ERROR");
     });
 
     it("refverts in borrowFresh without emitting any extra logs", async () => {
-      await expect(borrow(cToken, borrower, borrowAmount.plus(1))).rejects.toRevert();
+      await expect(borrow(cToken, borrower, borrowAmount.plus(1))).rejects.toRevertLive("Returned error: execution reverted");
     });
 
     it("returns success from borrowFresh and transfers the correct amount", async () => {
@@ -195,36 +195,36 @@ describe('CEther', function () {
 
         it("fails if repay is not allowed", async () => {
           await send(cToken.comptroller, 'setRepayBorrowAllowed', [false]);
-          await expect(repayBorrowFresh(cToken, payer, borrower, repayAmount)).rejects.toRevertWithCustomError('RepayBorrowComptrollerRejection', [11]);
+          await expect(repayBorrowFresh(cToken, payer, borrower, repayAmount)).rejects.toRevertWithCustomErrorLive('RepayBorrowComptrollerRejection', [11]);
         });
 
         it("fails if block number ≠ current block number", async () => {
           await fastForward(cToken);
-          await expect(repayBorrowFresh(cToken, payer, borrower, repayAmount)).rejects.toRevertWithCustomError('RepayBorrowFreshnessCheck');
+          await expect(repayBorrowFresh(cToken, payer, borrower, repayAmount)).rejects.toRevertWithCustomErrorLive('RepayBorrowFreshnessCheck');
         });
 
         it("returns an error if calculating account new account borrow balance fails", async () => {
           await pretendBorrow(cToken, borrower, 1, 1, 1);
-          await expect(repayBorrowFresh(cToken, payer, borrower, repayAmount)).rejects.toRevert();
+          await expect(repayBorrowFresh(cToken, payer, borrower, repayAmount)).rejects.toRevertLive("Returned error: execution reverted");
         });
 
         it("returns an error if calculation of new total borrow balance fails", async () => {
           await send(cToken, 'harnessSetTotalBorrows', [1]);
-          await expect(repayBorrowFresh(cToken, payer, borrower, repayAmount)).rejects.toRevert();
+          await expect(repayBorrowFresh(cToken, payer, borrower, repayAmount)).rejects.toRevertLive("Returned error: execution reverted");
         });
 
         it("reverts if checkTransferIn fails", async () => {
           await expect(
             send(cToken, 'harnessRepayBorrowFresh', [payer, borrower, repayAmount], {from: root, value: repayAmount})
-          ).rejects.toRevert("revert sender mismatch");
+          ).rejects.toRevertLive("Returned error: execution reverted: sender mismatch");
           await expect(
             send(cToken, 'harnessRepayBorrowFresh', [payer, borrower, repayAmount], {from: payer, value: 1})
-          ).rejects.toRevert("revert value mismatch");
+          ).rejects.toRevertLive("Returned error: execution reverted: value mismatch");
         });
 
         xit("reverts if repayBorrowVerify fails", async() => {
           await send(cToken.comptroller, 'setRepayBorrowVerify', [false]);
-          await expect(repayBorrowFresh(cToken, payer, borrower, repayAmount)).rejects.toRevert("revert repayBorrowVerify rejected repayBorrow");
+          await expect(repayBorrowFresh(cToken, payer, borrower, repayAmount)).rejects.toRevertLive("Returned error: execution reverted: repayBorrowVerify rejected repayBorrow");
         });
 
         it("transfers the underlying cash, and emits RepayBorrow event", async () => {
@@ -275,12 +275,12 @@ describe('CEther', function () {
 
     it("reverts if interest accrual fails", async () => {
       await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
-      await expect(repayBorrow(cToken, borrower, repayAmount)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+      await expect(repayBorrow(cToken, borrower, repayAmount)).rejects.toRevertLive("Returned error: execution reverted: INTEREST_RATE_MODEL_ERROR");
     });
 
     it("reverts when repay borrow fresh fails", async () => {
       await send(cToken.comptroller, 'setRepayBorrowAllowed', [false]);
-      await expect(repayBorrow(cToken, borrower, repayAmount)).rejects.toRevertWithCustomError('RepayBorrowComptrollerRejection', [11]);
+      await expect(repayBorrow(cToken, borrower, repayAmount)).rejects.toRevertWithCustomErrorLive('RepayBorrowComptrollerRejection', [11]);
     });
 
     it("returns success from repayBorrowFresh and repays the right amount", async () => {
@@ -294,7 +294,7 @@ describe('CEther', function () {
     it("reverts if overpaying", async () => {
       const beforeAccountBorrowSnap = await borrowSnapshot(cToken, borrower);
       let tooMuch = new BigNumber(beforeAccountBorrowSnap.principal).plus(1);
-      await expect(repayBorrow(cToken, borrower, tooMuch)).rejects.toRevert();
+      await expect(repayBorrow(cToken, borrower, tooMuch)).rejects.toRevertLive("Returned error: execution reverted");
       // await assert.toRevertWithError(repayBorrow(cToken, borrower, tooMuch), 'MATH_ERROR', "revert repayBorrow failed");
     });
   });
@@ -309,12 +309,12 @@ describe('CEther', function () {
 
     it("reverts if interest accrual fails", async () => {
       await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
-      await expect(repayBorrowBehalf(cToken, payer, borrower, repayAmount)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+      await expect(repayBorrowBehalf(cToken, payer, borrower, repayAmount)).rejects.toRevertLive("Returned error: execution reverted: INTEREST_RATE_MODEL_ERROR");
     });
 
     it("reverts from within repay borrow fresh", async () => {
       await send(cToken.comptroller, 'setRepayBorrowAllowed', [false]);
-      await expect(repayBorrowBehalf(cToken, payer, borrower, repayAmount)).rejects.toRevertWithCustomError('RepayBorrowComptrollerRejection', [11]);
+      await expect(repayBorrowBehalf(cToken, payer, borrower, repayAmount)).rejects.toRevertWithCustomErrorLive('RepayBorrowComptrollerRejection', [11]);
     });
 
     it("returns success from repayBorrowFresh and repays the right amount", async () => {

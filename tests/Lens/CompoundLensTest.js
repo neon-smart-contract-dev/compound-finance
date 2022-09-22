@@ -283,7 +283,7 @@ describe('CompoundLens', () => {
       });
     });
   });
-/*
+
   describe('governance', () => {
     let comp, gov;
     let targets, values, signatures, callDatas;
@@ -340,8 +340,6 @@ describe('CompoundLens', () => {
       })
     });
   });
-  */
-
 
   describe('comp', () => {
     let comp, currentBlock;
@@ -381,6 +379,8 @@ describe('CompoundLens', () => {
 
     describe('getCompVotes', () => {
       it('gets correct values', async () => {
+        console.log("currentBlock:",currentBlock)
+        console.log("getBlockNumber:", await call(compoundLens, 'getBlockNumber', []))
         expect(
           (await call(compoundLens, 'getCompVotes', [comp._address, acct, [currentBlock - 1, currentBlock - 2]])).map(cullTuple)
         ).toEqual([

@@ -26,11 +26,11 @@ describe('CEther', function () {
     });
 
     it("reverts if from != msg.sender", async () => {
-      await expect(call(cToken, 'harnessDoTransferIn', [nonRoot, 100], {value: 100})).rejects.toRevert("revert sender mismatch");
+      await expect(call(cToken, 'harnessDoTransferIn', [nonRoot, 100], {value: 100})).rejects.toRevertLive("Returned error: execution reverted: sender mismatch");
     });
 
     it("reverts if amount != msg.value", async () => {
-      await expect(call(cToken, 'harnessDoTransferIn', [root, 77], {value: 100})).rejects.toRevert("revert value mismatch");
+      await expect(call(cToken, 'harnessDoTransferIn', [root, 77], {value: 100})).rejects.toRevertLive("Returned error: execution reverted: value mismatch");
     });
 
     describe("doTransferOut", () => {
@@ -45,7 +45,8 @@ describe('CEther', function () {
       });
 
       it("reverts if it fails", async () => {
-        await expect(call(cToken, 'harnessDoTransferOut', [root, 77], {value: 0})).rejects.toRevert();
+        await expect(call(cToken, 'harnessDoTransferOut', [root, 77], {value: 0})).
+            rejects.toRevertLive("Returned error: execution finished with error: not enough fund to start the execution (runtime)");
       });
     });
   });

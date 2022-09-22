@@ -471,6 +471,10 @@ contract CompoundLens {
         uint votes;
     }
 
+    function getBlockNumber() external view returns (uint256) {
+        return block.number;
+    }
+
     function getCompVotes(Comp comp, address account, uint32[] calldata blockNumbers) external view returns (CompVotes[] memory) {
         CompVotes[] memory res = new CompVotes[](blockNumbers.length);
         for (uint i = 0; i < blockNumbers.length; i++) {

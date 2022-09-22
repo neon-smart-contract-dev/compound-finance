@@ -17,13 +17,13 @@ describe('CToken', function () {
   describe('_setComptroller', () => {
     it("should fail if called by non-admin", async () => {
       await expect(send(cToken, '_setComptroller', [newComptroller._address], { from: accounts[0] }))
-        .rejects.toRevertWithCustomError('SetComptrollerOwnerCheck');
+        .rejects.toRevertWithCustomErrorLive('SetComptrollerOwnerCheck');
       expect(await call(cToken, 'comptroller')).toEqual(oldComptroller._address);
     });
 
     it("reverts if passed a contract that doesn't implement isComptroller", async () => {
       await expect(send(cToken, '_setComptroller', [cToken.underlying._address]))
-        .rejects.toRevert("revert");
+        .rejects.toRevertLive("Returned error: execution reverted");
       expect(await call(cToken, 'comptroller')).toEqual(oldComptroller._address);
     });
 
@@ -31,7 +31,7 @@ describe('CToken', function () {
       // extremely unlikely to occur, of course, but let's be exhaustive
       const badComptroller = await makeComptroller({ kind: 'false-marker' });
       await expect(send(cToken, '_setComptroller', [badComptroller._address]))
-        .rejects.toRevert("revert marker method returned false");
+        .rejects.toRevertLive("Returned error: execution reverted: marker method returned false");
       expect(await call(cToken, 'comptroller')).toEqual(oldComptroller._address);
     });
 

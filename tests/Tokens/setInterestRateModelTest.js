@@ -23,20 +23,20 @@ describe('CToken', function () {
 
     it("fails if called by non-admin", async () => {
       await expect(send(cToken, 'harnessSetInterestRateModelFresh', [newModel._address], {from: accounts[0]}))
-        .rejects.toRevertWithCustomError('SetInterestRateModelOwnerCheck');
+        .rejects.toRevertWithCustomErrorLive('SetInterestRateModelOwnerCheck');
       expect(await call(cToken, 'interestRateModel')).toEqual(oldModel._address);
     });
 
     it("fails if market not fresh", async () => {
       expect(await send(cToken, 'harnessFastForward', [5])).toSucceed();
       await expect(send(cToken, 'harnessSetInterestRateModelFresh', [newModel._address]))
-        .rejects.toRevertWithCustomError('SetInterestRateModelFreshCheck');
+        .rejects.toRevertWithCustomErrorLive('SetInterestRateModelFreshCheck');
       expect(await call(cToken, 'interestRateModel')).toEqual(oldModel._address);
     });
 
     it("reverts if passed a contract that doesn't implement isInterestRateModel", async () => {
       await expect(send(cToken, 'harnessSetInterestRateModelFresh', [cToken.underlying._address]))
-        .rejects.toRevert();
+        .rejects.toRevertLive("Returned error: execution reverted");
       expect(await call(cToken, 'interestRateModel')).toEqual(oldModel._address);
     });
 
@@ -44,7 +44,7 @@ describe('CToken', function () {
       // extremely unlikely to occur, of course, but let's be exhaustive
       const badModel = await makeInterestRateModel({kind: 'false-marker'});
       await expect(send(cToken, 'harnessSetInterestRateModelFresh', [badModel._address]))
-        .rejects.toRevert("revert marker method returned false");
+        .rejects.toRevertLive("Returned error: execution reverted: marker method returned false");
       expect(await call(cToken, 'interestRateModel')).toEqual(oldModel._address);
     });
 
@@ -78,12 +78,12 @@ describe('CToken', function () {
     it("emits a set market interest rate model failure if interest accrual fails", async () => {
       await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
       await fastForward(cToken, 1);
-      await expect(send(cToken, '_setInterestRateModel', [newModel._address])).rejects.toRevert('revert INTEREST_RATE_MODEL_ERROR');
+      await expect(send(cToken, '_setInterestRateModel', [newModel._address])).rejects.toRevertLive('Returned error: execution reverted: INTEREST_RATE_MODEL_ERROR');
     });
 
     it("reverts from _setInterestRateModelFresh", async () => {
       await expect(send(cToken, '_setInterestRateModel', [newModel._address], {from: accounts[0]}))
-        .rejects.toRevertWithCustomError('SetInterestRateModelOwnerCheck');
+        .rejects.toRevertWithCustomErrorLive('SetInterestRateModelOwnerCheck');
     });
 
     it("reports success when _setInterestRateModelFresh succeeds", async () => {

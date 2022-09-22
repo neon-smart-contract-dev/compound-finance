@@ -19,6 +19,10 @@ contract TimelockHarness is Timelock {
     function harnessSetAdmin(address admin_) public {
         admin = admin_;
     }
+
+    function harnessSetDelay(uint delay_) public {
+        delay = delay_;
+    }
 }
 
 contract TimelockTest is Timelock {

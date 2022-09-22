@@ -132,15 +132,15 @@ describe('PriceOracleProxy', () => {
       await readAndVerifyProxyPrice(cDai, 0.01);
       await readAndVerifyProxyPrice(cSai, 0.05);
 
-      await expect(send(oracle, "setSaiPrice", [1])).rejects.toRevert("revert SAI price may only be set once");
+      await expect(send(oracle, "setSaiPrice", [1])).rejects.toRevertLive("Returned error: execution reverted: SAI price may only be set once");
     });
 
     it("only guardian may set the sai price", async () => {
-      await expect(send(oracle, "setSaiPrice", [1], {from: accounts[0]})).rejects.toRevert("revert only guardian may set the SAI price");
+      await expect(send(oracle, "setSaiPrice", [1], {from: accounts[0]})).rejects.toRevertLive("Returned error: execution reverted: only guardian may set the SAI price");
     });
 
     it("sai price must be bounded", async () => {
-      await expect(send(oracle, "setSaiPrice", [etherMantissa(10)])).rejects.toRevert("revert SAI price must be < 0.1 ETH");
+      await expect(send(oracle, "setSaiPrice", [etherMantissa(10)])).rejects.toRevertLive("Returned error: execution reverted: SAI price must be < 0.1 ETH");
     });
 });
 });
