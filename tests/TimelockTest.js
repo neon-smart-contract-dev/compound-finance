@@ -294,8 +294,9 @@ describe('Timelock', () => {
 
 //       const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
 //       await freezeTime(newBlockTimestamp.toNumber());
-      await sleep(5000);
-
+      await sleep(10000);
+// console.log("eta:", eta.toNumber())
+// console.log("timestamp:", (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp)
       const result = await send(timelock, 'executeTransaction', [target, value, signature, data, eta], {
         from: root
       });
@@ -409,8 +410,9 @@ describe('Timelock', () => {
 
 //       const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
 //       await freezeTime(newBlockTimestamp.toNumber())
-      await sleep(4000);
-
+      await sleep(10000);
+// console.log("eta:", eta.toNumber())
+// console.log("timestamp:", (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp)
       const result = await send(timelock, 'executeTransaction', [target, value, signature, data, eta], {
         from: root
       });
