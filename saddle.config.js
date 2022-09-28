@@ -262,7 +262,7 @@ module.exports = {
       },
       accounts: [
         {env: "ACCOUNT"},
-        {file: "~/.neon/neon"}, // Load from given file with contents as the private key (e.g. 0x...)
+        {file: "neon_test_keys"}, // Load from given file with contents as the private key (e.g. 0x...)
         // {default: "66f4c78fc576855313d105b987f399bb7f1f329aaa73db0b2cd0f41271df95f5"},                         // Load from given file with contents as the private key (e.g. 0x...)
         {unlocked: 0}
       ]
