@@ -120,7 +120,7 @@ Local Neon node must be running beforehand by [proxy-model.py](https://github.co
 
 Next, we need to build the image:
 
-    cker build -t compound-protocol .
+    sudo docker build -t compound-protocol .
 
 And run container:
 
