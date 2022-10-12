@@ -113,6 +113,18 @@ Testing
 Jest contract tests are defined under the [tests directory](https://github.com/compound-finance/compound-protocol/tree/master/tests). To run the tests run:
 
     yarn test
+    
+Running Neon network test in docker
+-----------------------------------
+Local Neon node must be running beforehand by [proxy-model.py](https://github.com/neonlabsorg/proxy-model.py).
+
+Next, we need to build the image:
+
+    cker build -t compound-protocol .
+
+And run container:
+
+    sudo docker run -it --net=host compound-protocol
 
 Integration Specs
 -----------------

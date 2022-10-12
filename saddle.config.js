@@ -213,7 +213,7 @@ module.exports = {
     neon: {
       providers: [
         {env: "PROVIDER"},
-        {http: "https://proxy.devnet.neonlabs.org/solana"}
+        {http: "https://devnet.neonevm.org/solana"}
       ],
       // 66f4c78fc576855313d105b987f399bb7f1f329aaa73db0b2cd0f41271df95f5
       // from: "0xEc32c2Ca328E6611AF73A316Ee96c309f9A757BF", // Specify public key corresponding to private key defined above

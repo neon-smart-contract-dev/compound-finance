@@ -1,0 +1,29 @@
+{
+    "Unitroller": {
+        "description": "Unitroller",
+        "address": "0x0398ABFF337B883A92f902d927Fd6d9BaF0a2b82"
+    },
+    "Contracts": {
+        "Unitroller": "0x0398ABFF337B883A92f902d927Fd6d9BaF0a2b82",
+        "PriceOracle": "0x2984eB832824C5863ac054CfF67792FF7EF8bDce",
+        "Counter": "0x88B19F34bD29033C7FF57516F396bf25428891c1"
+    },
+    "Constructors": {
+        "Unitroller": "0x",
+        "PriceOracle": "0x0000000000000000000000000000000000000000000000000de0b6b3a7640000",
+        "Counter": "0x"
+    },
+    "Blocks": {
+        "Unitroller": 4065,
+        "PriceOracle": 4069,
+        "Counter": 4
+    },
+    "PriceOracle": {
+        "description": "Fixed Price Oracle",
+        "address": "0x2984eB832824C5863ac054CfF67792FF7EF8bDce"
+    },
+    "Counter": {
+        "name": "Counter",
+        "contract": "Counter"
+    }
+}
